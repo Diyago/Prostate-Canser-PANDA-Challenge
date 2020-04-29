@@ -1,0 +1,93 @@
+input_paths:
+  pretrained_models:
+    se_resnext50_32x4d: ./pretrained_models/se_resnext50_32x4d-a260b3a4.pth
+
+Train:
+  Dataset:
+    images_path: ./panda-resized-train-data-512x512/train_images/train_images/
+    images_type: png
+    target_height: 256
+    target_width: 256
+    target_col: isup_grade
+  loader:
+    batch_size: 20
+    shuffle: True
+    num_workers: 4
+Val:
+  Dataset:
+    images_path: ./panda-resized-train-data-512x512/train_images/train_images/
+    images_type: png
+    target_height: 256
+    target_width: 256
+    target_col: isup_grade
+  loader:
+    batch_size: 20
+    shuffle: False
+    num_workers: 4
+
+logger_path:
+  main_logger: ./lightning_logs/main_logs.txt
+  lightning_logger: ./lightning_logs
+
+model_params:
+  model:
+    name: se_resnext50_32x4d
+    path: ./pretrained_models/se_resnext50_32x4d-a260b3a4.pth
+  target_size: 6
+  show_model_summary: False
+
+training:
+  batch_size: 16
+  loss: CrossEntropyLoss
+  warmup_steps: 200
+  optimizer:
+    name: Adam
+    kwargs:
+      amsgrad: False
+      lr: 1e-4
+  early_stop_callback:
+    monitor: avg_val_metric
+    mode: max
+    patience: 4
+    verbose: True
+  ModelCheckpoint:
+    path: /{epoch:02d}-{avg_val_metric:.4f}
+    kwargs:
+      monitor: avg_val_metric
+      mode: max
+  scheduler:
+    ReduceLROnPlateau:
+      factor: 0.5
+      patience: 2
+      verbose: True
+      mode: max
+    kwargs:
+      monitor: avg_val_metric  # Default: val_loss
+      interval: epoch
+      frequency: 1
+  Trainer:
+    show_progress_bar: False
+    max_epochs: 30
+    min_epochs: 3
+    precision: 32
+    fast_dev_run: False
+    accumulate_grad_batches: 1
+    gpus: 1
+    train_percent_check: 1
+    val_percent_check: 1
+    num_nodes: 1
+    auto_lr_find: False # bugs
+
+
+validation:
+  # fixed to StratifiedKFold
+  train_csv: ./panda-resized-train-data-512x512/train.csv
+  test_csv: ./panda-resized-train-data-512x512/test.csv
+  sample_submission: ./panda-resized-train-data-512x512/sample_submission.csv
+  folds_path: ./lightning_logs/folds.csv
+  target_col: isup_grade
+  nfolds: 5
+  seed: 42
+  batch_size: 16
+
+total_seed: 42

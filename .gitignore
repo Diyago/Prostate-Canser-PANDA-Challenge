@@ -124,6 +124,9 @@ venv.bak/
 .mypy_cache/
 .dmypy.json
 dmypy.json
-
-# Pyre type checker
-.pyre/
+/panda-resized-train-data-512x512/
+/.idea/
+/lightning_logs/
+/MNIST/
+/pretrained_models/
+/trained_models/
