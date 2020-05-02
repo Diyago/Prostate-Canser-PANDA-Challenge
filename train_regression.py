@@ -36,7 +36,7 @@ class LightningCanserClassifier(pl.LightningModule):
         super(LightningCanserClassifier, self).__init__()
 
         self.config = config
-        self.model = get_model_output('efficientnet_b3b', num_outputs=1)
+        self.model = get_model_output('efficientnet_b2b', num_outputs=1)
 
     def forward(self, x):
         batch_size, channels, width, height = x.size()
@@ -131,7 +131,7 @@ if __name__ == '__main__':
         valid_loader = DataLoader(valid_dataset, **config['Val']['loader'])
 
         tb_logger = TensorBoardLogger(save_dir=config['logger_path']['lightning_logger'],
-                                      name=config['model_params']['model']['name'], version=f'fold_{fold + 1}')
+                                      name=config['model_params']['model_name'], version=f'fold_{fold + 1}')
         os.makedirs('{}/{}'.format(config['logger_path']['lightning_logger'], config['model_params']['model']['name']),
                     exist_ok=True)
 

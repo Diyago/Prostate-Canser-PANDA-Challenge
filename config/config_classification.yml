@@ -10,7 +10,7 @@ Train:
     target_width: 256
     target_col: isup_grade
   loader:
-    batch_size: 20
+    batch_size: 16
     shuffle: True
     num_workers: 4
 Val:
@@ -30,16 +30,21 @@ logger_path:
   lightning_logger: ./lightning_logs
 
 model_params:
-  model:
-    name: se_resnext50_32x4d
-    path: ./pretrained_models/se_resnext50_32x4d-a260b3a4.pth
-  target_size: 6
+  num_outputs: 6
+  model_name: efficientnet_b2b
+  pretrained: True
+  freeze_bn: False
+  dropout_p: 0
+#  model:
+#    name: se_resnext50_32x4d
+#    path: ./pretrained_models/se_resnext50_32x4d-a260b3a4.pth
+#  target_size: 6
   show_model_summary: False
 
 training:
   batch_size: 16
   loss: CrossEntropyLoss
-  warmup_steps: 200
+  warmup_steps: 300
   optimizer:
     name: Adam
     kwargs:
@@ -48,7 +53,7 @@ training:
   early_stop_callback:
     monitor: avg_val_metric
     mode: max
-    patience: 4
+    patience: 5
     verbose: True
   ModelCheckpoint:
     path: /{epoch:02d}-{avg_val_metric:.4f}
@@ -67,7 +72,7 @@ training:
       frequency: 1
   Trainer:
     show_progress_bar: False
-    max_epochs: 30
+    max_epochs: 20
     min_epochs: 3
     precision: 32
     fast_dev_run: False
@@ -86,7 +91,7 @@ validation:
   sample_submission: ./panda-resized-train-data-512x512/sample_submission.csv
   folds_path: ./lightning_logs/folds.csv
   target_col: isup_grade
-  nfolds: 5
+  nfolds: 4
   seed: 42
   batch_size: 16
 

@@ -1,8 +1,10 @@
+import importlib
 import ntpath
 import os
 import os.path
 import random
 from functools import partial
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -109,7 +111,7 @@ def convert_model(model, full_checkpoint_path, output_path):
     sanitized_dict = {}
     for k, v in checkpoint["state_dict"].items():
         sanitized_dict[k.replace("model.model", "model")] = v
-        #sanitized_dict[k.replace("model.", "")] = v
+        # sanitized_dict[k.replace("model.", "")] = v
 
     sample = torch.rand(1, 3, 256, 256, dtype=torch.float32)
     model.load_state_dict(sanitized_dict)
@@ -117,3 +119,24 @@ def convert_model(model, full_checkpoint_path, output_path):
     filename = ntpath.basename(full_checkpoint_path).replace('=', '')
     os.makedirs(output_path, exist_ok=True)
     scripted_model.save(f"{output_path}/{filename}.pth")
+
+
+def load_obj(obj_path: str, default_obj_path: str = "") -> Any:
+    """Extract an object from a given path.
+        Args:
+            obj_path: Path to an object to be extracted, including the object name.
+            default_obj_path: Default object path.
+        Returns:
+            Extracted object.
+        Raises:
+            AttributeError: When the object does not have the given named attribute.
+    """
+    obj_path_list = obj_path.rsplit(".", 1)
+    obj_path = obj_path_list.pop(0) if len(obj_path_list) > 1 else default_obj_path
+    obj_name = obj_path_list[0]
+    module_obj = importlib.import_module(obj_path)
+    if not hasattr(module_obj, obj_name):
+        raise AttributeError(
+            f"Object `{obj_name}` cannot be loaded from `{obj_path}`."
+        )
+    return getattr(module_obj, obj_name)

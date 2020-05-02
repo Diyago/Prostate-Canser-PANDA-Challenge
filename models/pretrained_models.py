@@ -1,17 +1,20 @@
-import torch.nn as nn
-from torchvision import models
 import pretrainedmodels
+import torch.nn as nn
 from pytorchcv.model_provider import get_model
+from torchvision import models
 
 
 def get_model_output(model_name='resnet18', num_outputs=None, pretrained=True,
-              freeze_bn=False, dropout_p=0, **kwargs):
-
+                     freeze_bn=False, dropout_p=0, **kwargs):
     if 'efficientnet' in model_name:
         model = get_model(model_name, pretrained=True)
-        model.output = nn.Linear(model.output.fc.in_features, 1)
-        return model
-
+        if dropout_p == 0:
+            model.last_linear = nn.Linear(model.output.fc.in_features, num_outputs)
+        else:
+            model.last_linear = nn.Sequential(
+                nn.Dropout(p=dropout_p),
+                nn.Linear(model.output.fc.in_features, num_outputs),
+            )
     elif 'densenet' in model_name:
         model = models.__dict__[model_name](num_classes=1000,
                                             pretrained=pretrained)
